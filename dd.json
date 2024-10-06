@@ -1,0 +1,78 @@
+{
+  "store": {
+    "grocery": {
+      "aisle1": {
+        "products": [
+          {
+            "name": "Apples",
+            "price": 3.50,
+            "origin": "USA",
+            "in_stock": true
+          },
+          {
+            "name": "Bananas",
+            "price": 1.20,
+            "origin": "Ecuador",
+            "in_stock": true
+          }
+        ]
+      },
+      "aisle2": {
+        "products": [
+          {
+            "name": "Milk",
+            "price": 4.00,
+            "brand": "DairyLand",
+            "expiry_date": "2024-09-20",
+            "in_stock": false
+          },
+          {
+            "name": "Bread",
+            "price": 2.50,
+            "brand": "Wonder",
+            "expiry_date": "2024-09-18",
+            "in_stock": true
+          }
+        ]
+      }
+    },
+    "electronics": {
+      "section1": {
+        "devices": [
+          {
+            "type": "Phone",
+            "brand": "Samsung",
+            "model": "Galaxy S21",
+            "price": 799.99,
+            "warranty_years": 2
+          },
+          {
+            "type": "Laptop",
+            "brand": "Dell",
+            "model": "XPS 13",
+            "price": 999.99,
+            "warranty_years": 3
+          }
+        ]
+      },
+      "section2": {
+        "devices": [
+          {
+            "type": "TV",
+            "brand": "LG",
+            "model": "OLED55",
+            "price": 1200.00,
+            "warranty_years": 4
+          },
+          {
+            "type": "Headphones",
+            "brand": "Sony",
+            "model": "WH-1000XM4",
+            "price": 349.99,
+            "warranty_years": 1
+          }
+        ]
+      }
+    }
+  }
+}

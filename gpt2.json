@@ -1,0 +1,135 @@
+[
+  {
+    "employee_id": 101,
+    "name": "John Doe",
+    "department": "Engineering",
+    "details": {
+      "age": 29,
+      "address": {
+        "street": "123 Elm St",
+        "city": "Springfield",
+        "state": "IL",
+        "postal_code": "62704"
+      },
+      "skills": [
+        {"name": "Python", "level": "Expert", "experience": 5},
+        {"name": "Spark", "level": "Intermediate", "experience": 3}
+      ]
+    },
+    "salary": 75000.50,
+    "projects": [
+      {"name": "Project Alpha", "budget": 100000, "duration_months": 12},
+      {"name": "Project Beta", "budget": 50000, "duration_months": 6}
+    ]
+  },
+  {
+    "employee_id": 102,
+    "name": "Jane Smith",
+    "department": "Engineering",
+    "details": {
+      "age": 34,
+      "address": {
+        "street": "456 Oak St",
+        "city": "Metropolis",
+        "state": "NY",
+        "postal_code": "10001"
+      },
+      "skills": [
+        {"name": "SEO", "level": "Expert", "experience": 6},
+        {"name": "Data Analysis", "level": "Advanced", "experience": 4}
+      ]
+    },
+    "salary": 85000.00,
+    "projects": [
+      {"name": "Project Gamma", "budget": 75000, "duration_months": 9}
+    ]
+  },
+  {
+    "employee_id": 103,
+    "name": "John",
+    "department": "Engineering",
+    "details": {
+      "age": 28,
+      "address": {
+        "street": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "postal_code": "10002"
+      },
+      "skills": [
+        {"name": "Networking", "level": "Intermediate", "experience": 3},
+        {"name": "Customer Service", "level": "Expert", "experience": 5}
+      ]
+    },
+    "salary": 50000.00,
+    "projects": [
+      {"name": "Project Alpha", "budget": 60000, "duration_months": 8}
+    ]
+  },
+  {
+    "employee_id": 104,
+    "name": "Emily Davis",
+    "department": "Human Resources",
+    "details": {
+      "age": 32,
+      "address": {
+        "street": "789 Elm St",
+        "city": "Los Angeles",
+        "state": "CA",
+        "postal_code": "90001"
+      },
+      "skills": [
+        {"name": "Recruitment", "level": "Advanced", "experience": 4},
+        {"name": "Employee Relations", "level": "Expert", "experience": 6}
+      ]
+    },
+    "salary": 80000.00,
+    "projects": [
+      {"name": "Project Beta", "budget": 85000, "duration_months": 10}
+    ]
+  },
+  {
+    "employee_id": 105,
+    "name": "Michael Johnson",
+    "department": "Human Resources",
+    "details": {
+      "age": 30,
+      "address": {
+        "street": "456 Oak St",
+        "city": "Chicago",
+        "state": "IL",
+        "postal_code": "60601"
+      },
+      "skills": [
+        {"name": "Software Development", "level": "Expert", "experience": 7},
+        {"name": "Problem Solving", "level": "Advanced", "experience": 5}
+      ]
+    },
+    "salary": 90000.00,
+    "projects": [
+      {"name": "Project Delta", "budget": 100000, "duration_months": 12}
+    ]
+  },
+  {
+    "employee_id": 107,
+    "name": "Bob Lee",
+    "department": "Finance",
+    "details": {
+      "age": 37,
+      "address": {
+        "street": "321 Maple St",
+        "city": "San Francisco",
+        "state": "CA",
+        "postal_code": "94104"
+      },
+      "skills": [
+        {"name": "SQL", "level": "Advanced", "experience": 6},
+        {"name": "Financial Modeling", "level": "Expert", "experience": 9}
+      ]
+    },
+    "salary": 98000.00,
+    "projects": [
+      {"name": "Project Zeta", "budget": 60000, "duration_months": 12}
+    ]
+  }
+]
