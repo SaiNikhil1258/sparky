@@ -340,50 +340,105 @@ import urllib.request
 # R********2@gmail.com,98****34
 # a*********3@gmail.com,98****88
 
-cols = ["Mail","mob"]
-data = [
-	( "Renuka1992@gmail.com","9856765434" ),
-( "anbu.arasu3@gmail.com","9844567788" ),
-( "sainihil123123@gmail.com","9844567788" ),
-]
-rdd = sc.parallelize(data)
-df = rdd.toDF(cols)
-df.show()
-df.createOrReplaceTempView("df")
+# cols = ["Mail","mob"]
+# data = [
+# 	( "Renuka1992@gmail.com","9856765434" ),
+# ( "anbu.arasu3@gmail.com","9844567788" ),
+# ( "sainihil123123@gmail.com","9844567788" ),
+# ]
+# rdd = sc.parallelize(data)
+# df = rdd.toDF(cols)
+# df.show()
+# df.createOrReplaceTempView("df")
+#
+# masked_df = spark.sql("""
+# SELECT
+#     CONCAT(SUBSTR(Mail, 1, 1), '*****', SUBSTR(Mail, LENGTH(SUBSTRING_INDEX(Mail, '@', +1)) + 1)) AS masked_email,
+#     CONCAT(SUBSTR(mob, 1, 2), '****', SUBSTR(mob, -2)) AS masked_phone
+# FROM df
+# """)
+#
+# # Show the result
+# masked_df.show(truncate=False)
+#
+#
+# # info using the UDF
+# def mask_email(email):
+# 	if "@" in email:
+# 		local_part, domain_part = email.split("@")
+# 		masked_email = local_part[0] + "*****" + local_part[-1] + "@" + domain_part
+# 		return masked_email
+# 	return email  # Return as is if no '@' found
+#
+# # Define UDF to mask phone number
+# def mask_phone(phone):
+# 	if len(phone) > 4:
+# 		masked_phone = phone[:2] + "****" + phone[-2:]
+# 		return masked_phone
+# 	return phone  # Return as is if phone number is too short
+#
+# # Register UDFs
+# mask_email_udf = udf(mask_email, StringType())
+# mask_phone_udf = udf(mask_phone, StringType())
+#
+# # Apply UDFs to DataFrame
+# masked_df = df.withColumn("masked_email", mask_email_udf(df.Mail)) \
+# 	.withColumn("masked_phone", mask_phone_udf(df.mob))
+#
+# # Show the result
+# masked_df.select("masked_email", "masked_phone").show(truncate=False)
 
-masked_df = spark.sql("""
-SELECT 
-    CONCAT(SUBSTR(Mail, 1, 1), '*****', SUBSTR(Mail, LENGTH(SUBSTRING_INDEX(Mail, '@', +1)) + 1)) AS masked_email,
-    CONCAT(SUBSTR(mob, 1, 2), '****', SUBSTR(mob, -2)) AS masked_phone
-FROM df
-""")
 
-# Show the result
-masked_df.show(truncate=False)
+#
+# email = r("^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")
+#
+# phone =  r("^\\d{10}$")
 
+# note: scenario -9 given the id, contact details in the form of a string. you have to extract the
+#  phone number, and email from the string if given else fill it with NULL
+# data = [
+# 	("E001", "John works at ABC Corp. Contact: 9876543210"),
+# 	("E002", "Anna's email is anna.smith@gmail.com. Her phone number is 9123456789"),
+# 	("E003", "No contact information available."),
+# 	("E004", "Reach me at  or via mail alice.johnson@xyz.co.uk")
+# ]
+#
+# # Define columns
+# columns = ["employee_id", "contact_details"]
+#
+# # Create DataFrame
+# df = spark.createDataFrame(data, columns)
+#
+# # Extract phone number (assumed to be 10 digits)
+# phone_pattern = r'(\d{10})'
+# email_pattern = r'([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})'
+#
+# df = (df
+# 	  .withColumn(
+# 		"phone_number",
+# 			when(
+# 					trim(
+# 									regexp_extract(col("contact_details"),
+# 							phone_pattern, 1)) == "",
+# 									None)
+# 					.otherwise(
+# 							regexp_extract(
+# 									col("contact_details"),
+# 									phone_pattern,
+# 										1)))
+# 	  .withColumn(
+# 		"email_id",
+# 			when(
+# 					trim(
+# 								regexp_extract(col("contact_details"),
+# 											email_pattern, 1)) == "",
+# 											None)
+# 					.otherwise(
+# 							regexp_extract(
+# 										col("contact_details"),
+# 										email_pattern,
+# 										1)))
+# 	.select("employee_id", "phone_number", "email_id"))
+# # Show the result
+# df.show(truncate=False)
 
-# info using the UDF
-def mask_email(email):
-	if "@" in email:
-		local_part, domain_part = email.split("@")
-		masked_email = local_part[0] + "*****" + local_part[-1] + "@" + domain_part
-		return masked_email
-	return email  # Return as is if no '@' found
-
-# Define UDF to mask phone number
-def mask_phone(phone):
-	if len(phone) > 4:
-		masked_phone = phone[:2] + "****" + phone[-2:]
-		return masked_phone
-	return phone  # Return as is if phone number is too short
-
-# Register UDFs
-mask_email_udf = udf(mask_email, StringType())
-mask_phone_udf = udf(mask_phone, StringType())
-
-# Apply UDFs to DataFrame
-masked_df = df.withColumn("masked_email", mask_email_udf(df.Mail)) \
-	.withColumn("masked_phone", mask_phone_udf(df.mob))
-
-# Show the result
-masked_df.select("masked_email", "masked_phone").show(truncate=False)

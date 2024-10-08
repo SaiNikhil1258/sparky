@@ -2,6 +2,8 @@ import os
 import datetime
 from datetime import timedelta
 import urllib.request
+
+from PIL.ImageWin import Window
 from matplotlib.patheffects import withStroke
 from matplotlib.pyplot import fill_between
 from numpy.ma.core import inner
@@ -9,6 +11,7 @@ from pydantic.v1.utils import truncate
 from pyparsing import withClass
 from pyspark import SparkConf
 from pyspark import SparkContext
+from pyspark.pandas.utils import spark_column_equals
 from pyspark.sql import SparkSession, Window
 import sys
 from collections import namedtuple
@@ -689,7 +692,7 @@ spark = SparkSession.builder.getOrCreate()
 # rdd = sc.parallelize(data)
 # df = rdd.toDF(cols)
 # df.show()
-#
+# df.createOrReplaceTempView("df")
 #
 # window_spec = Window.partitionBy("card_name").orderBy("issue_month")
 #
@@ -699,5 +702,747 @@ spark = SparkSession.builder.getOrCreate()
 # 	   .withColumn("difference", floor("difference"))
 # 	)
 # res.show(truncate=False)
+#
+#
+# spark.sql("""
+# 	select
+# 		card_name,
+# 		floor(max(issued_amount)-min(issued_amount)) as diff
+# 	from
+# 		df
+# 	group by
+# 		card_name
+# """).show(truncate=False)
 
 
+
+# note: 10  You('re trying to find the mean number of items per order on Alibaba, rounded to 1 decimal place using
+#  'tables which includes information on the count of items in each order (item_count table) and the '
+# 	'corresponding number of orders for each item count (order_occurrences table).)
+
+# cols = [ "item_count",	"order_occurrences" ]
+# data = [
+# 	( "1",	"500" ),
+# 	( "2",	"1000") ,
+# 	( "3",	"800" ),
+# 	( "4", "1000" ),
+# ]
+# rdd = sc.parallelize(data)
+# df = rdd.toDF(cols)
+# df.show()
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	select
+# 		round(sum(item_count * order_occurrences) / sum(order_occurrences),2) as mean
+# 	from df
+# """).show()
+#
+#
+# (
+# 	df
+# 	.agg(
+# 		round(
+# 			sum(df.item_count * df.order_occurrences) / sum(df.order_occurrences),2)
+# 				.alias("mean"))
+#  	.show()
+# )
+
+
+
+# note-11  CVS Health is trying to better understand its pharmacy sales, and how well different products are
+#  selling. Each drug can only be produced by one manufacturer.
+#  Write a query to find the top 3 most profitable drugs sold, and how much profit they made. Assume that
+#  there are no ties in the profits. Display the result from the highest to the lowest total profit.
+# Definition:
+# cogs stands for Cost of Goods Sold which is the direct cost associated with producing the drug.
+# Total Profit = Total Sales - Cost of Goods Sold
+
+
+
+# cols = [ "product_id",	"units_sold",	"total_sales",	"cogs",	"manufacturer",	"drug" ]
+# data = [
+# 	( "9",	"37410",	"293452.54",	"208876.01",	"Eli Lilly",	"Zyprexa" ),
+# 	( "34",	"94698",	"600997.19",	"521182.16",	"AstraZeneca",	"Surmontil" ),
+# 	( "61",	"77023",	"500101.61",	"419174.97",	"Biogen",	"Varicose Relief" ),
+# 	( "136",	"144814",	"1084258",	"1006447.73","Biogen",	"Burkhart" ),
+# ]
+#
+#
+# rdd = sc.parallelize(data)
+# df = rdd.toDF(cols)
+# df.show()
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	select
+# 		drug,
+# 		total_sales - cogs as profits
+# 	from
+# 		df
+# 	order by
+# 		total_sales desc
+# 	limit
+# 		3
+# """).show()
+#
+#
+# df.withColumn("profits", df.total_sales.cast("double") - df.cogs.cast("double")) \
+# 	.select("drug", "profits") \
+# 	.orderBy(col("profits").desc()) \
+# 	.limit(3) \
+# 	.show()
+
+
+#note 12 CVS Health is analyzing its pharmacy sales data, and how well different products are selling
+# in the market. Each drug is exclusively manufactured by a single manufacturer.
+# Write a query to identify the manufacturers associated with the drugs that resulted in losses for CVS
+# Health and calculate the total amount of losses incurred.
+# Output the manufacturer's name, the number of drugs associated with losses, and the total losses in
+# absolute value. Display the results sorted in descending order with the highest losses displayed at the top.
+
+# cols = ["product_id", "units_sold", "total_sales", "cogs", "manufacturer", "drug"]
+# data = [
+# 	(156, 89514, 3130097.00, 3427421.73, "Biogen", "Acyclovir"),
+# 	(25, 222331, 2753546.00, 2974975.36, "AbbVie", "Lamivudine and Zidovudine"),
+# 	(50, 90484, 2521023.73, 2742445.90, "Eli Lilly", "Dermasorb TA Complete Kit"),
+# 	(98, 110746, 813188.82, 140422.87, "Biogen", "Medi-Chord")
+# ]
+# rdd = sc.parallelize(data)
+# df = rdd.toDF(cols)
+# df.show()
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	select
+# 		manufacturer,
+# 		count(drug) as drug_count,
+# 		sum(cogs-total_sales) as total_loss
+# 	from
+# 		df
+# 	where
+# 		cogs > total_sales
+# 	group by
+# 		manufacturer
+# """).show()
+#
+#
+# ( df
+#   	.filter("cogs>total_sales")
+#   	.groupby("manufacturer")
+#   	.agg(
+# 		sum(df.cogs-df.total_sales).alias("total_loss"),
+# 		count("drug").alias("count")
+# 	)
+# 	.show()
+# )
+
+
+# note 13 CVS Health wants to gain a clearer understanding of its pharmacy sales and the performance
+#  of various products.
+#  Write a query to calculate the total drug sales for each manufacturer. Round the answer to the nearest
+# 	million and report your results in descending order of total sales. In case of any duplicates,
+# 	sort them alphabetically by the manufacturer name.
+# 	Since this data will be displayed on a dashboard viewed by business stakeholders, please format
+# 	your results as follows: "$36 million".
+
+
+# cols = ["product_id", "units_sold", "total_sales", "cogs", "manufacturer", "drug"]
+# data = [
+# 	(94, 132362, 2041758.41, 1373721.70, "Biogen", "UP and UP"),
+# 	(9, 37410, 293452.54, 208876.01, "Eli Lilly", "Zyprexa"),
+# 	(50, 90484, 2521023.73, 2742445.90, "Eli Lilly", "Dermasorb"),
+# 	(61, 77023, 500101.61, 419174.97, "Biogen", "Varicose Relief"),
+# 	(136, 144814, 1084258.00, 1006447.73, "Biogen", "Burkhart")
+# ]
+#
+# df = spark.createDataFrame(data, cols)
+#
+# df.show()
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	select
+# 		manufacturer,
+# 		concat('$', floor(sum(total_sales)/1000000), ' million') as sales_mill
+# 	from
+# 		df
+# 	group by
+# 		manufacturer
+# 	order by
+# 		sum(total_sales) desc,
+# 		manufacturer
+# """).show()
+#
+#
+# result_df = (
+# 	df.groupBy("manufacturer")
+# 	.agg(floor(sum("total_sales") / 1000000).alias("sales_mil"))  # Sum and convert to millions
+# 	.select(
+# 		col("manufacturer"),
+# 		concat(lit("$"), col("sales_mil"), lit(" million")).alias("sales_mil")  # Format as required
+# 	)
+# 	.orderBy(col("sales_mil").desc(), col("manufacturer"))  # Order by sales_mil and manufacturer
+# )
+# result_df.show()
+
+
+# note 14 UnitedHealth Group (UHG) has a program called Advocate4Me, which allows policy holders
+#  (or, members) to call an advocate and receive support for their health care needs – whether that's
+#  claims and benefits support, drug coverage, pre- and post-authorisation, medical records, emergency
+#  assistance, or member portal services.
+# Write a query to find how many UHG policy holders made three, or more calls, assuming each call is
+# identified by the case_id column.
+
+
+# columns = ["policy_holder_id", "case_id", "call_category", "call_date", "call_duration_secs"]
+#
+# # Create sample data
+# data = [
+# 	(1, "f1d012f9-9d02-4966-a968-bf6c5bc9a9fe", "emergency assistance", "2023-04-13T19:16:53Z", 144),
+# 	(1, "41ce8fb6-1ddd-4f50-ac31-07bfcce6aaab", "authorisation", "2023-05-25T09:09:30Z", 815),
+# 	(2, "9b1af84b-eedb-4c21-9730-6f099cc2cc5e", "claims assistance", "2023-01-26T01:21:27Z", 992),
+# 	(2, "8471a3d4-6fc7-4bb2-9fc7-4583e3638a9e", "emergency assistance", "2023-03-09T10:58:54Z", 128),
+# 	(2, "38208fae-bad0-49bf-99aa-7842ba2e37bc", "benefits", "2023-06-05T07:35:43Z", 619)
+# ]
+#
+# # Create DataFrame
+# df = spark.createDataFrame(data, schema=columns)
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	with call_records as (
+# 		select
+# 			policy_holder_id,
+# 			count(case_id) as call_count
+# 		from
+# 			df
+# 		group by
+# 			policy_holder_id
+# 		having
+# 			count(case_id)>=3
+# 	)
+# 	select
+# 		count(policy_holder_id) as policy_holder_count
+# 	from
+# 		call_records
+# """).show()
+#
+# res =df.groupby("policy_holder_id").agg(count("case_id").alias('call_count'))
+# print(res.filter(res.call_count >= 3).count())
+
+
+
+# note 15 As a data analyst on the Oracle Sales Operations team, you are given a list of salespeople’s deals,
+#  and the annual quota they need to hit.
+#  Write a query that outputs each employee id and whether they hit the quota or not ('yes' or 'no').
+#  Order the results by employee id in ascending order.
+# Definitions:
+# deal_size: Deals acquired by a salesperson in the year. Each salesperson may have more than 1 deal.
+# quota: Total annual quota for each salesperson.
+
+# data_quota = [
+# 	(101, 500000),
+# 	(201, 400000),
+# 	(301, 600000)
+# ]
+# columns_quota = ["employee_id", "quota"]
+# quotas = spark.createDataFrame(data_quota, columns_quota)
+#
+# data_deal = [
+# 	(101, 400000),
+# 	(101, 300000),
+# 	(201, 500000),
+# 	(301, 500000)
+# ]
+# columns_deal = ["employee_id", "deal_size"]
+#
+# deals= spark.createDataFrame(data_deal, columns_deal)
+# quotas.createOrReplaceTempView("quotas")
+# deals.createOrReplaceTempView("deals")
+#
+# spark.sql("""
+# 	select
+# 		deals.employee_id,
+# 		case
+# 			when sum(deals.deal_size) > q.quota then 'yes'
+# 			else 'no'
+# 		end as made_quota
+# 	from
+# 		deals
+# 	join
+# 		quotas q
+# 	on
+# 		deals.employee_id=q.employee_id
+# 	group by
+# 		deals.employee_id, q.quota
+# 	order by
+# 		deals.employee_id
+# """).show()
+#
+#
+# (deals
+#  	.join(quotas,  "employee_id","inner")
+#  	.groupBy("employee_id", "quota")
+#  	.agg(when(
+# 			sum(deals.deal_size)> quotas.quota, 'yes')
+# 		  				.otherwise('no').alias("made_quota")
+# 	).select("employee_id", "made_quota").show()
+#  )
+
+#note 16 Companies often perform salary analyses to ensure fair compensation practices. One useful
+# analysis is to check if there are any employees earning more than their direct managers.
+# As a HR Analyst, you're asked to identify all employees who earn more than their direct managers.
+# The result should include the employee's ID and name.
+
+# data = [
+# 	(1, "Emma Thompson", 3800, 1, 6),
+# 	(2, "Daniel Rodriguez", 2230, 1, 7),
+# 	(3, "Olivia Smith", 7000, 1, 8),
+# 	(4, "Noah Johnson", 6800, 2, 9),
+# 	(5, "Sophia Martinez", 1750, 1, 11),
+# 	(6, "Liam Brown", 13000, 3, None),
+# 	(7, "Ava Garcia", 12500, 3, None),
+# 	(8, "William Davis", 6800, 2, None)
+# ]
+#
+# # Define the schema (column names)
+# columns = ["employee_id", "name", "salary", "department_id", "manager_id"]
+#
+# # Create the DataFrame
+# df = spark.createDataFrame(data, columns)
+# df.createOrReplaceTempView("df")
+#
+# spark.sql("""
+# SELECT
+#   emp.employee_id,
+#   emp.name as employee_name
+# from
+# 	df mgr
+# INNER JOIN
+# 	df emp
+# ON
+# 	mgr.employee_id=emp.manager_id
+# where
+# 	emp.salary>mgr.salary
+# """).show()
+#
+#
+# df.alias("mgr") \
+# 	.join(df.alias("emp"), col("mgr.employee_id") == col("emp.manager_id")) \
+# 	.filter(col("emp.salary") > col("mgr.salary")) \
+# 	.select(col("emp.employee_id"), col("emp.name").alias("employee_name")) \
+# 	.show()
+
+
+
+
+#note 17
+# Assume you are given the table below on Uber transactions made by users. Write a query to obtain the
+# third transaction of every user. Output the user id, spend and transaction date.
+
+# data = [
+# 	(111, 100.50, "01/08/2022 12:00:00"),
+# 	(111, 55.00, "01/10/2022 12:00:00"),
+# 	(121, 36.00, "01/18/2022 12:00:00"),
+# 	(145, 24.99, "01/26/2022 12:00:00"),
+# 	(111, 89.60, "02/05/2022 12:00:00")
+# ]
+# cols = ["user_id", "spend", "transaction_date"]
+# df = spark.createDataFrame(data, cols)
+# df.show()
+# df = df.withColumn("transaction_date", to_timestamp(df.transaction_date , "MM/dd/yyyy HH:mm:ss"))
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	with cte as(
+# 		select
+# 			user_id,
+# 			spend,
+# 			transaction_date,
+# 			row_number()over(partition by user_id order by transaction_date) as row_num
+# 		from df
+# 	)
+# 	select
+# 		user_id,
+# 		spend,
+# 		transaction_date
+# 	from cte
+# 	where row_num=3
+# """).show()
+#
+# window_spec = Window.partitionBy("user_id").orderBy("transaction_date")
+# (
+# 	df
+# 	.withColumn("row_num", row_number().over(window_spec))
+# 	.filter("row_num=3")
+# 	.select("user_id", "spend", "transaction_date")
+# 	.show()
+# )
+
+
+
+# note 18   Imagine you're an HR analyst at a tech company tasked with analyzing employee salaries.
+#  Your manager is keen on understanding the pay distribution and asks you to determine the second highest
+#  salary among all employees.
+#  It's possible that multiple employees may share the same second highest salary. In case of duplicate,
+#  display the salary only once.
+
+
+# data = [
+# 	(1, "Emma Thompson", 3800, 1, 6),
+# 	(2, "Daniel Rodriguez", 2230, 1, 7),
+# 	(3, "Olivia Smith", 2000, 1, 8)
+# ]
+#
+# # Define the schema (column names)
+# columns = ["employee_id", "name", "salary", "department_id", "manager_id"]
+# df = spark.createDataFrame(data, columns)
+# df.createOrReplaceTempView("df")
+#
+# window_spec = Window.orderBy(col("salary").desc())
+#
+# df.withColumn("rank", dense_rank().over(window_spec)).filter("rank=2").select("salary").show()
+#
+# spark.sql("""
+# 	with rank as(
+# 		select
+# 			employee_id, salary,
+# 			dense_rank() over (order by salary desc) as rank
+# 		from df
+# 	)
+# 	select
+# 		salary
+# 	from rank
+# 	where rank=2
+# """).show()
+
+
+#note 19
+# Assume you're given tables with information on Snapchat users, including their ages and time spent
+# sending and opening snaps.
+# Write a query to obtain a breakdown of the time spent sending vs. opening snaps as a percentage of
+# total time spent on these activities grouped by age group. Round the percentage to 2 decimal places in
+# the output.
+# Notes:
+# Calculate the following percentages:
+# time spent sending / (Time spent sending + Time spent opening)
+# Time spent opening / (Time spent sending + Time spent opening)
+# To avoid integer division in percentages, multiply by 100.0 and not 100.
+
+# cols = [ "activity_id", "user_id", "activity_type", "time_spent", "activity_date"]
+# cols2 = ["user_id", "age_bucket"]
+# activity_data = [
+# 	(7274, 123, "open", 4.50, "06/22/2022 12:00:00"),
+# 	(2425, 123, "send", 3.50, "06/22/2022 12:00:00"),
+# 	(1413, 456, "send", 5.67, "06/23/2022 12:00:00"),
+# 	(1414, 789, "chat", 11.00, "06/25/2022 12:00:00"),
+# 	(2536, 456, "open", 3.00, "06/25/2022 12:00:00")
+# ]
+#
+# age_data = [
+# 	(123, "31-35"),
+# 	(456, "26-30"),
+# 	(789, "21-25")
+# ]
+#
+# df1 = spark.createDataFrame(activity_data, cols)
+# df2 = spark.createDataFrame(age_data, cols2)
+# df1.show()
+# df2.show()
+#
+#
+# df = df2.join(df1, "user_id","left")
+# df.createOrReplaceTempView("df")
+#
+# res = (df
+# 	   .groupBy("age_bucket")
+# 	   .agg(
+# 			sum(when(col("activity_type").isin("chat","open", "send"), col("time_spent")).otherwise(0)).alias("total_time"),
+# 			sum(when(col("activity_type").isin("chat","open"), col("time_spent")).otherwise(0)).alias("time_open"),
+# 			sum(when(col("activity_type").isin("send"), col("time_spent")).otherwise(0)).alias("time_send")
+# 		))
+# res.show()
+# dff = (res
+# 	  .withColumn("open_perc", (res.time_open/res.total_time) * 100.0)
+# 	  .withColumn("send_perc", (res.time_send/res.total_time) * 100.0)
+# )
+# dff.show()
+# spark.sql("""
+# 	with time as (
+# 		select
+# 			age_bucket,
+# 			sum(time_spent) as total_time,
+# 			sum( case
+# 					when activity_type in ( 'chat', 'open' ) then time_spent
+# 					else 0
+# 					end
+# 			) as time_open,
+# 			sum( case
+# 					when activity_type in ( 'send' ) then time_spent
+# 					else 0
+# 					end
+# 			) as time_send
+# 		from
+# 			df
+# 		group by
+# 			age_bucket
+# 	)
+# 	select
+# 		age_bucket,
+# 		(time_open/total_time) * 100.0 as open_perc,
+# 		(time_send/total_time) * 100.0 as spend_per
+# 	from time
+# """).show()
+
+
+# note 20 Given a table of tweet data over a specified time period, calculate the 3-day rolling average
+#  of tweets for each user. Output the user ID, tweet date, and rolling averages rounded to 2 decimal places.
+#  Notes: A rolling average, also known as a moving average or running mean is a time-series technique that
+#  examines trends in data over a specified period of time.
+#  In this case, we want to determine how the tweet count for each user changes over a 3-day period.
+
+# data = [
+# 	(111, "06/01/2022 00:00:00", 2),
+# 	(111, "06/02/2022 00:00:00", 1),
+# 	(111, "06/03/2022 00:00:00", 3),
+# 	(111, "06/04/2022 00:00:00", 4),
+# 	(111, "06/05/2022 00:00:00", 5),
+# 	(114, "06/03/2022 00:00:00", 3),
+# 	(114, "06/04/2022 00:00:00", 4),
+# 	(114, "06/05/2022 00:00:00", 5)
+# ]
+# cols = ["user_id", "tweet_date", "tweet_count"]
+# df = spark.createDataFrame(data, cols)
+#
+# df.show(truncate=False)
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	select
+# 		user_id,
+# 		tweet_date,
+# 		round(avg(tweet_count) over(partition by user_id order by tweet_date rows between 2 preceding and current row),2) as rolling_avg_3_days
+# 	from
+# 		df
+# """).show()
+# print("with spark DSL")
+# window_spec = Window.partitionBy("user_id").orderBy("tweet_date").rowsBetween(-2,0)
+# df.withColumn("rolling_avg_3_days", avg("tweet_count").over(window_spec)).show()
+
+# note 21
+#  Assume you're given a table containing data on Amazon customers and their spending on products in
+#  different category, write a query to identify the top two highest-grossing products within each
+#  category in the year 2022. The output should include the category, product, and total spend.
+
+# data = [
+# 	("appliance", "refrigerator", 165, 246.00, "2021-12-26 12:00:00"),
+# 	("appliance", "refrigerator", 123, 299.99, "2022-03-02 12:00:00"),
+# 	("appliance", "washing machine", 123, 219.80, "2022-03-02 12:00:00"),
+# 	("electronics", "vacuum", 178, 152.00, "2022-04-05 12:00:00"),
+# 	("electronics", "wireless headset", 156, 249.90, "2022-07-08 12:00:00"),
+# 	("electronics", "vacuum", 145, 189.00, "2022-07-15 12:00:00")
+# ]
+# cols = ["category",	"product",	"user_id",	"spend",	"transaction_date"]
+# # Create DataFrame
+# df = spark.createDataFrame(data, cols)
+# df=df.withColumn("transaction_date", to_timestamp("transaction_date", "yyyy-MM-dd HH:mm:ss"))
+# df.show()
+#
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	with rank as(
+# 		select
+# 			category,
+# 			product,
+# 			sum(spend) as total_spend,
+# 			rank() over(partition by category order by sum(spend) desc) as rank
+# 		from
+# 			df
+# 		where
+# 			year(transaction_date)=2022
+# 		group by
+# 			category,
+# 			product
+# 	)
+# 	select
+# 		category,
+# 		product,
+# 		total_spend
+# 	from rank
+# 	where rank <=2
+# 	order by category, rank
+# """).show()
+#
+# window_spec = Window.partitionBy("category").orderBy(col("total_spend").desc())
+#
+# m1 = df.withColumn("year", year("transaction_date"))
+# m2 = (m1
+# 	  .filter(col("year")==2022)
+# 	  .groupby("category", "product")
+# 	  .agg(sum("spend").alias("total_spend"))
+# 	  .withColumn("rank", rank().over(window_spec))
+# 	  .filter(col("rank")<=2)
+# 	  .orderBy("category", "rank")
+# 	  .select("category", "product", "total_spend")
+# 	)
+# m2.show()
+
+# note 22  As part of an ongoing analysis of salary distribution within the company, your manager has
+#  requested a report identifying high earners in each department. A 'high earner' within a department
+#  is defined as an employee with a salary ranking among the top three salaries within that department.
+#  You're tasked with identifying these high earners across all departments. Write a query to display the
+#  employee's name along with their department name and salary. In case of duplicates, sort the results of
+#  department name in ascending order, then by salary in descending order. If multiple employees have
+#  the same salary, then order them alphabetically.
+# Note: Ensure to utilize the appropriate ranking window function to handle duplicate salaries effectively.
+
+
+# employee_data = [
+# 	(1, "Emma Thompson", 3800, 1, 6),
+# 	(2, "Daniel Rodriguez", 2230, 1, 7),
+# 	(3, "Olivia Smith", 2000, 1, 8),
+# 	(4, "Noah Johnson", 6800, 2, 9),
+# 	(5, "Sophia Martinez", 1750, 1, 11),
+# 	(6, "Liam Brown", 13000, 3, None),
+# 	(7, "Ava Garcia", 12500, 3, None),
+# 	(8, "William Davis", 6800, 2, None),
+# 	(9, "Isabella Wilson", 11000, 3, None),
+# 	(10, "James Anderson", 4000, 1, 11)
+# ]
+# cols = ["employee_id","employee_name","salary", "department_id", "manager_id"]
+# cols2 = ["department_id", "department_name"]
+#
+# # Department data
+# department_data = [
+# 	(1, "Data Analytics"),
+# 	(2, "Data Science")
+# ]
+#
+# df1 = spark.createDataFrame(employee_data, cols)
+# df2 = spark.createDataFrame(department_data, cols2)
+# df1.show()
+# df2.show()
+# df1.createOrReplaceTempView("df1")
+# df2.createOrReplaceTempView("df2")
+#
+#
+# res = df1.join(df2, "department_id", 'left')
+# window_spec = Window.partitionBy("department_id").orderBy(col("salary").desc(), col("employee_name"))
+# res = (
+# 	res
+# 	.withColumn("rank", dense_rank().over(window_spec))
+# 	.filter("department_id!=3")
+# 	.select("department_name", "employee_name", "salary")
+# 	.filter("rank<=3")
+# 	)
+# res.show()
+#
+# spark.sql("""
+# 	with rank as(
+# 		select
+# 			df1.department_id,
+# 			df1.salary,
+# 			department_name,
+# 			employee_name,
+# 			dense_rank()over(partition by df1.department_id order by df1.salary desc, df1.employee_name) as rank
+# 		from
+# 			df1
+# 		left join
+# 			df2
+# 		on
+# 			df1.department_id=df2.department_id
+# 		where
+# 			df1.department_id!=3
+# 	)
+# 	select
+# 		department_name,
+# 		employee_name,
+# 		salary
+# 	from
+# 		rank
+# 	where
+# 		rank<=3
+# """).show()
+
+
+# note 23  Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain
+#  information about the artists, songs, and music charts, respectively.
+#  Write a query to find the top 5 artists whose songs appear most frequently in the Top 10 of the
+#  global_song_rank table. Display the top 5 artist names in ascending order, along with their song
+#  appearance ranking.
+#  If two or more artists have the same number of song appearances, they should be assigned the same
+#  ranking, and the rank numbers should be continuous (i.e. 1, 2, 2, 3, 4, 5).
+
+# artists_data = [
+# 	(101, "Ed Sheeran", "Warner Music Group"),
+# 	(120, "Drake", "Warner Music Group"),
+# 	(125, "Bad Bunny", "Rimas Entertainment")
+# ]
+#
+# # Songs data
+# songs_data = [
+# 	(55511, 101, "Perfect"),
+# 	(45202, 101, "Shape of You"),
+# 	(22222, 120, "One Dance"),
+# 	(19960, 120, "Hotline Bling")
+# ]
+#
+# # Global song rank data
+# global_song_rank_data = [
+# 	(1, 45202, 5),
+# 	(3, 45202, 2),
+# 	(1, 19960, 3),
+# 	(9, 19960, 15)
+# ]
+#
+# # Create DataFrames without specifying schema
+# artists_df = spark.createDataFrame(artists_data, ["artist_id", "artist_name", "label_owner"])
+# songs_df = spark.createDataFrame(songs_data, ["song_id", "artist_id", "name"])
+# global_song_rank_df = spark.createDataFrame(global_song_rank_data, ["day", "song_id", "rank"])
+#
+# # Show DataFrames
+# artists_df.show()
+# songs_df.show()
+# global_song_rank_df.show()
+# artists_df.createOrReplaceTempView("artists")
+# songs_df.createOrReplaceTempView("songs")
+# global_song_rank_df.createOrReplaceTempView("ranking")
+#
+# window_spec = Window.orderBy(col("song_count").desc())
+#
+# # Perform the join and aggregation
+# top_10_df = (artists_df
+# 			 .join(songs_df, "artist_id", "inner")
+# 			 .join(global_song_rank_df, "song_id", "inner")
+# 			 .filter(global_song_rank_df.rank <= 10)
+# 			 .groupBy(artists_df.artist_name)
+# 			 .agg(count("song_id").alias("song_count"))
+# 			 .withColumn("artist_rank", dense_rank().over(window_spec))
+# 			 )
+# top_10_df.show()
+# final_result = top_10_df.filter(top_10_df.artist_rank <= 5).select("artist_name", "artist_rank")
+# final_result.show()
+#
+# spark.sql("""
+# 	WITH top_10_cte as (
+# 	  SELECT
+# 		artists.artist_name,
+# 		dense_rank()over(ORDER BY count(songs.song_id) desc) as artist_rank
+# 	  from
+# 	  	artists
+# 	  inner JOIN
+# 	  	songs
+# 	  ON
+# 	  	artists.artist_id = songs.artist_id
+# 	  inner JOIN
+# 	  	ranking
+# 	  ON
+# 	  	songs.song_id=ranking.song_id
+# 	  WHERE
+# 	  	ranking.rank <=10
+# 	  GROUP BY
+# 	  	artists.artist_name
+# 	)
+#
+# 	SELECT
+# 		artist_name,
+# 		artist_rank
+# 	from
+# 		top_10_cte
+# 	WHERE
+# 		artist_rank<=5;
+# """).show()
