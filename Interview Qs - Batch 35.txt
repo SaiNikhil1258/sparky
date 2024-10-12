@@ -32,7 +32,8 @@ R********2@gmail.com,98****34
 a*********3@gmail.com,98****88
 
 Q4:
-Given below is the stock data set which shows stock and its predicted price over next 7 working days/sessions As a end user i want to know what should be my buy price and what should be my sell price for each share so that i can earn maximum profit.
+Given below is the stock data set which shows stock and its predicted price over next 7 working days/sessions As a
+end user i want to know what should be my buy price and what should be my sell price for each share so that i can earn maximum profit.
 E.g
 For RIL, if i buy it on first session and sell it on 4th session i will get 200 profit.
  

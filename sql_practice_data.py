@@ -1446,3 +1446,151 @@ spark = SparkSession.builder.getOrCreate()
 # 	WHERE
 # 		artist_rank<=5;
 # """).show()
+
+
+
+#note 24 New TikTok users sign up with their emails. They confirmed their signup by replying to the text
+# confirmation to activate their accounts. Users may receive multiple text messages for account confirmation
+# until they have confirmed their new account.
+# A senior analyst is interested to know the activation rate of specified users in the emails table.
+# Write a query to find the activation rate. Round the percentage to 2 decimal places.
+# Definitions:
+# emails table contain the information of user signup details.
+# texts table contains the users' activation information.
+# Assumptions:
+# The analyst is interested in the activation rate of specific users in the emails table, which may
+# not include all users that could potentially be found in the texts table.
+# For example, user 123 in the emails table may not be in the texts table and vice versa.
+
+# emails_data = [
+# 	(125, 7771, "2022-06-14 00:00:00"),
+# 	(236, 6950, "2022-07-01 00:00:00"),
+# 	(433, 1052, "2022-07-09 00:00:00")
+# ]
+#
+# # Create emails DataFrame
+# emails_df = spark.createDataFrame(emails_data, ["email_id", "user_id", "signup_date"])
+#
+# # Sample data for texts
+# texts_data = [
+# 	(6878, 125, "Confirmed"),
+# 	(6920, 236, "Not Confirmed"),
+# 	(6994, 236, "Confirmed")
+# ]
+#
+# # Create texts DataFrame
+# texts_df = spark.createDataFrame(texts_data, ["text_id", "email_id", "signup_action"])
+#
+# # Show DataFrames
+# emails_df.show()
+# texts_df.show()
+#
+# emails_df.createOrReplaceTempView("emails")
+# texts_df.createOrReplaceTempView("texts")
+#
+# spark.sql("""
+# SELECT
+# 	ROUND(COUNT(texts.email_id)/COUNT(DISTINCT emails.email_id),2) AS activation_rate
+# FROM emails
+# LEFT JOIN texts
+# ON emails.email_id = texts.email_id
+# AND texts.signup_action = 'Confirmed';
+# """).show()
+# #
+#
+#
+# result_df = (
+# 	emails_df
+# 	.join(texts_df, emails_df.email_id == texts_df.email_id, "left")
+# 	.agg(
+# 		round(
+# 			count(when(texts_df.signup_action == 'Confirmed', texts_df.email_id)) / countDistinct(emails_df.email_id), 2
+# 		).alias("activation_rate")
+# 	)
+# )
+#
+# result_df.show()
+
+
+
+
+
+# note 25 A Microsoft Azure Supercloud customer is defined as a customer who has purchased at
+#  least one product from every product category listed in the products table.
+# Write a query that identifies the customer IDs of these Supercloud customers.
+
+# customer_contracts_data = [
+# 	(1, 1, 1000),
+# 	(1, 6, 2000),
+# 	(1, 5, 1500),
+# 	(2, 2, 3000),
+# 	(2, 6, 2000)
+# ]
+#
+# # Sample data for products
+# products_data = [
+# 	(1, "Analytics", "Azure Databricks"),
+# 	(2, "Analytics", "Azure Stream Analytics"),
+# 	(4, "Containers", "Azure Kubernetes Service"),
+# 	(5, "Containers", "Azure Service Fabric"),
+# 	(6, "Compute", "Virtual Machines"),
+# 	(7, "Compute", "Azure Functions")
+# ]
+#
+# # Create DataFrames
+# customer_contracts_df = spark.createDataFrame(customer_contracts_data, ["customer_id", "product_id", "amount"])
+# products_df = spark.createDataFrame(products_data, ["product_id", "product_category", "product_name"])
+#
+# # Show DataFrames
+# customer_contracts_df.show()
+# products_df.show()
+# customer_contracts_df.createOrReplaceTempView("customer_contracts")
+# products_df.createOrReplaceTempView("products")
+# spark.sql("""
+# 	WITH supercloud_cust AS (
+# 		SELECT
+# 			customers.customer_id,
+# 			COUNT(DISTINCT products.product_category) AS product_count
+# 		FROM
+# 			customer_contracts AS customers
+# 		INNER JOIN
+# 			products
+# 		ON
+# 			customers.product_id = products.product_id
+# 		GROUP BY
+# 			customers.customer_id
+# 	)
+# 	SELECT
+# 		customer_id
+# 	FROM
+# 		supercloud_cust
+# 	WHERE
+# 		product_count = (
+# 			SELECT
+# 				COUNT(DISTINCT product_category) FROM products
+# 	);
+# """).show()
+#
+#
+# supercloud_cust_df = ( customer_contracts_df
+#   .join(products_df, "product_id", "inner")
+#   .groupBy("customer_id")
+#   .agg(count_distinct(products_df.product_category).alias("product_count"))
+# )
+#
+#
+# total_product_category_count = (products_df
+# 									.select(countDistinct("product_category").alias("total_product_categories"))
+# 									.collect()[0][0])
+#
+# result_df = (
+# 	supercloud_cust_df
+# 	.filter(supercloud_cust_df.product_count == total_product_category_count)
+# 	.select("customer_id")
+# )
+#
+# result_df.show()
+
+
+
+
