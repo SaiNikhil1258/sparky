@@ -475,111 +475,110 @@ import urllib.request
 # E.g
 # For RIL, if i buy it on first session and sell it on 4th session i will get 200 profit.
 
-stock_data = [
-	("RIL", [1000, 1005, 1090, 1200, 1000, 900, 890]),
-	("HDFC", [890, 940, 810, 730, 735, 960, 980]),
-	("INFY", [1001, 902, 1000, 990, 1230, 1100, 1200])
-]
-# Create DataFrame for the stock data
-columns = ["StockId", "PredictedPrice"]
-df = spark.createDataFrame(stock_data, columns)
-df.createOrReplaceTempView("stocks")
-
-
-# Explode the PredictedPrice array
-exploded_df = spark.sql("""
-    SELECT StockId, session, price
-    FROM (
-        SELECT StockId, posexplode(PredictedPrice) AS (session, price)
-        FROM stocks
-    )
-""")
-
-# Create a temporary view of the exploded DataFrame
-exploded_df.createOrReplaceTempView("exploded_stocks")
-
-# SQL to calculate the maximum profit
-result_sql = spark.sql("""
-    SELECT StockId, 
-           buy_price,
-           sell_price,
-           (sell_price - buy_price) AS max_profit
-    FROM (
-        SELECT a.StockId,
-               a.price AS buy_price,
-               b.price AS sell_price,
-               ROW_NUMBER() OVER (PARTITION BY a.StockId ORDER BY (b.price - a.price) DESC) AS profit_rank
-        FROM exploded_stocks a
-        JOIN exploded_stocks b
-        ON a.StockId = b.StockId AND a.session < b.session
-    ) 
-    WHERE profit_rank = 1
-    order by max_profit desc
-""")
-
-result_sql.show()
-
-print("dsaf;lkjasd as;lkdjfasdlfkjlaksjlkjaflkjhasdfkljhasdfkjhasdlkjhasdflkjhasdfkjhasdfkjhasdkf jhasdfkjhsa fkjhasf")
-
-exploded_df = df.select(
-	"StockId",
-	posexplode("PredictedPrice").alias("session", "price")
-)
-# Calculate maximum profit using DataFrame API
-window_spec = Window.partitionBy("a.StockId").orderBy((col("b.price") - col("a.price")).desc())
-
-# Calculate maximum profit using DataFrame API
-results = (
-	exploded_df.alias("a")
-	.join(exploded_df.alias("b"), (col("a.StockId") == col("b.StockId")) & (col("a.session") < col("b.session")))
-
-)
-results.show()
-
-# Define a function to find the buy price, sell price, and max profit for each stock
-def calculate_max_profit(predicted_prices):
-	prices = predicted_prices
-	n = len(prices)
-
-	# Initialize variables for tracking the minimum price and max profit
-	min_price = prices[0]
-	max_profit = 0
-	buy_price = min_price
-	sell_price = min_price
-
-	# Iterate over the prices to find the optimal buy and sell points
-	for i in range(1, n):
-		if prices[i] < min_price:
-			min_price = prices[i]
-		elif prices[i] - min_price > max_profit:
-			max_profit = prices[i] - min_price
-			buy_price = min_price
-			sell_price = prices[i]
-
-	return buy_price, sell_price, max_profit
-
-# Register the function as a UDF
-calculate_max_profit_udf = udf(calculate_max_profit, StructType([
-	StructField("BuyPrice", IntegerType(), True),
-	StructField("SellPrice", IntegerType(), True),
-	StructField("MaxProfit", IntegerType(), True)
-]))
-
-# Apply the UDF on the DataFrame to calculate buy price, sell price, and profit
-df_with_profit = df.withColumn("ProfitDetails", calculate_max_profit_udf(col("PredictedPrice")))
-
-# Extract the BuyPrice, SellPrice, and MaxProfit from the struct column
-df_final = df_with_profit.select(
-	"StockId",
-	col("ProfitDetails.BuyPrice").alias("BuyPrice"),
-	col("ProfitDetails.SellPrice").alias("SellPrice"),
-	col("ProfitDetails.MaxProfit").alias("MaxProfit")
-)
-
-# Show the result
-df_final.show()
-
-
+# stock_data = [
+# 	("RIL", [1000, 1005, 1090, 1200, 1000, 900, 890]),
+# 	("HDFC", [890, 940, 810, 730, 735, 960, 980]),
+# 	("INFY", [1001, 902, 1000, 990, 1230, 1100, 1200])
+# ]
+# # Create DataFrame for the stock data
+# columns = ["StockId", "PredictedPrice"]
+# df = spark.createDataFrame(stock_data, columns)
+# df.createOrReplaceTempView("stocks")
+#
+#
+# # Explode the PredictedPrice array
+# exploded_df = spark.sql("""
+#     SELECT StockId, session, price
+#     FROM (
+#         SELECT StockId, posexplode(PredictedPrice) AS (session, price)
+#         FROM stocks
+#     )
+# """)
+#
+# # Create a temporary view of the exploded DataFrame
+# exploded_df.createOrReplaceTempView("exploded_stocks")
+#
+# # SQL to calculate the maximum profit
+# result_sql = spark.sql("""
+#     SELECT StockId,
+#            buy_price,
+#            sell_price,
+#            (sell_price - buy_price) AS max_profit
+#     FROM (
+#         SELECT a.StockId,
+#                a.price AS buy_price,
+#                b.price AS sell_price,
+#                ROW_NUMBER() OVER (PARTITION BY a.StockId ORDER BY (b.price - a.price) DESC) AS profit_rank
+#         FROM exploded_stocks a
+#         JOIN exploded_stocks b
+#         ON a.StockId = b.StockId AND a.session < b.session
+#     )
+#     WHERE profit_rank = 1
+#     order by max_profit desc
+# """)
+#
+# result_sql.show()
+#
+# print("dsaf;lkjasd as;lkdjfasdlfkjlaksjlkjaflkjhasdfkljhasdfkjhasdlkjhasdflkjhasdfkjhasdfkjhasdkf jhasdfkjhsa fkjhasf")
+#
+# exploded_df = df.select(
+# 	"StockId",
+# 	posexplode("PredictedPrice").alias("session", "price")
+# )
+# # Calculate maximum profit using DataFrame API
+# window_spec = Window.partitionBy("a.StockId").orderBy((col("b.price") - col("a.price")).desc())
+#
+# # Calculate maximum profit using DataFrame API
+# results = (
+# 	exploded_df.alias("a")
+# 	.join(exploded_df.alias("b"), (col("a.StockId") == col("b.StockId")) & (col("a.session") < col("b.session")))
+#
+# )
+# results.show()
+#
+# # Define a function to find the buy price, sell price, and max profit for each stock
+# def calculate_max_profit(predicted_prices):
+# 	prices = predicted_prices
+# 	n = len(prices)
+#
+# 	# Initialize variables for tracking the minimum price and max profit
+# 	min_price = prices[0]
+# 	max_profit = 0
+# 	buy_price = min_price
+# 	sell_price = min_price
+#
+# 	# Iterate over the prices to find the optimal buy and sell points
+# 	for i in range(1, n):
+# 		if prices[i] < min_price:
+# 			min_price = prices[i]
+# 		elif prices[i] - min_price > max_profit:
+# 			max_profit = prices[i] - min_price
+# 			buy_price = min_price
+# 			sell_price = prices[i]
+#
+# 	return buy_price, sell_price, max_profit
+#
+# # Register the function as a UDF
+# calculate_max_profit_udf = udf(calculate_max_profit, StructType([
+# 	StructField("BuyPrice", IntegerType(), True),
+# 	StructField("SellPrice", IntegerType(), True),
+# 	StructField("MaxProfit", IntegerType(), True)
+# ]))
+#
+# # Apply the UDF on the DataFrame to calculate buy price, sell price, and profit
+# df_with_profit = df.withColumn("ProfitDetails", calculate_max_profit_udf(col("PredictedPrice")))
+#
+# # Extract the BuyPrice, SellPrice, and MaxProfit from the struct column
+# df_final = df_with_profit.select(
+# 	"StockId",
+# 	col("ProfitDetails.BuyPrice").alias("BuyPrice"),
+# 	col("ProfitDetails.SellPrice").alias("SellPrice"),
+# 	col("ProfitDetails.MaxProfit").alias("MaxProfit")
+# )
+#
+# # Show the result
+# df_final.show()
+#
 
 
 

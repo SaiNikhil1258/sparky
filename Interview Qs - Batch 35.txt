@@ -49,6 +49,12 @@ RIL|1000|1200|200
 HDFC|730|980|250
 INFY|902|1230|328
 
+
+
+
+
+
+
 Q5:
 ALTRIMETRIC Questios
 
@@ -64,6 +70,16 @@ shankar			chennai,noida				30
 find the name who have visited the places most frequently
 3. I have three columns deptno,deptname and place
 using scala read a text file and display only deptno and deptname. no rdds and dataframes used.
+
+
+
+
+
+
+
+
+
+
 
 Q6:
 BM Interview questions

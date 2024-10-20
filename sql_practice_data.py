@@ -1594,3 +1594,163 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
+# NOTE: This is the same question as problem #28 in the SQL Chapter of Ace the Data Science Interview!
+# Assume you're given a table with measurement values obtained from a Google sensor over multiple days
+# with measurements taken multiple times within each day.
+# Write a query to calculate the sum of odd-numbered and even-numbered measurements separately for a
+# particular day and display the results in two different columns. Refer to the Example Output below for the
+# desired format.
+# Definition:
+# Within a day, measurements taken at 1st, 3rd, and 5th times are considered odd-numbered measurements,
+# and measurements taken at 2nd, 4th, and 6th times are considered even-numbered measurements.
+
+# info you would want to assign a row number to the date then you can just %2 the results as odd sum and even sum
+# measurement_data = [
+# 	(131233, 1109.51, "07/10/2022 09:00:00"),
+# 	(135211, 1662.74, "07/10/2022 11:00:00"),
+# 	(523542, 1246.24, "07/10/2022 13:15:00"),
+# 	(143562, 1124.50, "07/11/2022 15:00:00"),
+# 	(346462, 1234.14, "07/11/2022 16:45:00")
+# ]
+#
+# # Define the column names
+# columns = ["measurement_id", "measurement_value", "measurement_time"]
+# df = spark.createDataFrame(measurement_data, columns)
+# df = df.withColumn("measurement_time", to_date(df["measurement_time"], "MM/dd/yyyy HH:mm:ss"))
+# df.show()
+# df.createOrReplaceTempView("df")
+#
+# window_spec = Window.partitionBy("measurement_time").orderBy(col("measurement_time").desc())
+# row_df = df.withColumn("row_num", row_number().over(window_spec))
+#
+# row_df.groupBy("measurement_time").agg(
+# 	sum(when(col("row_num") % 2 != 0, col("measurement_value")).otherwise(0)).alias("odd_sum"),
+# 	sum(when(col("row_num") % 2 == 0, col("measurement_value")).otherwise(0)).alias("even_sum")
+# ).show()
+#
+# # info the key is to assign a row number and then % 2 that row number you will get the odd and even numbers sum
+# spark.sql("""
+# 	with view as (
+# 		select
+# 			measurement_time,
+# 			measurement_value,
+# 			row_number() over(partition by measurement_time order by measurement_time desc) as row_num
+# 		from
+# 			df
+# 	)
+# 	select
+# 		measurement_time,
+# 		sum(case when row_num%2!=0 then measurement_value else 0 end) as odd_sum,
+# 		sum(case when row_num%2=0 then measurement_value else 0 end) as even_sum
+# 	from
+# 		view
+# 	group by
+# 		measurement_time
+# """).show()
+
+
+
+
+
+
+# note Assume you're given a table on Walmart user transactions. Based on their most recent transaction date,
+#  write a query that retrieve the users along with the number of products they bought.
+# Output the user's most recent transaction date, user ID, and the number of products, sorted in
+# chronological order by the transaction date.
+# Starting from November 10th, 2022, the official solution was updated, and the expected output of
+# transaction date, number of users, and number of products was changed to the current expected output.
+
+# data = [
+# 	(3673, 123, 68.90, "07/08/2022 12:00:00"),
+# 	(9623, 123, 274.10, "07/08/2022 12:00:00"),
+# 	(1467, 115, 19.90, "07/08/2022 12:00:00"),
+# 	(2513, 159, 25.00, "07/08/2022 12:00:00"),
+# 	(1452, 159, 74.50, "07/10/2022 12:00:00")
+# ]
+#
+# # Define the column names
+# columns = ["product_id", "user_id", "spend", "transaction_date"]
+#
+# # Create DataFrame
+# df = spark.createDataFrame(data, columns)
+#
+# # Show the DataFrame
+# df.show(truncate=False)
+# df.createOrReplaceTempView("df")
+# # we need to get the most latest transaction and show how many products bought on that transaction
+# # we can rank all the transactions then filter out the rank=1 and then do the extra remaining logic
+# spark.sql("""
+# 	with latest as (
+# 		select
+# 			transaction_date,
+# 			user_id,
+# 			product_id,
+# 			rank() over(partition by user_id order by transaction_date desc) as trans_rank
+# 		from
+# 			df
+# 	)
+# 	select
+# 		transaction_date,
+# 		user_id,
+# 		count(product_id) as purchase_count
+# 	from
+# 		latest
+# 	where
+# 		trans_rank=1
+# 	group by
+# 		transaction_date,
+# 		user_id
+# 	order by
+# 		transaction_date
+# """).show()
+#
+#
+# window_spec = Window.partitionBy("user_id").orderBy(col("transaction_date").desc())
+# df = df.withColumn("rank", rank().over(window_spec))
+# res = df.filter("rank=1").groupBy("transaction_date", "user_id").agg(count("product_id").alias("count"))
+# res.show()
+
+
+
+#note   You're given a table containing the item count for each order on Alibaba, along with the
+# frequency of orders that have the same item count. Write a query to retrieve the mode of the order
+# occurrences. Additionally, if there are multiple item counts with the same mode, the results
+# should be sorted in ascending order.
+# Clarifications:
+# item_count: Represents the number of items sold in each order.
+# order_occurrences: Represents the frequency of orders with the corresponding number of items sold per order.
+# For example, if there are 800 orders with 3 items sold in each order, the record would have an
+# item_count of 3 and an order_occurrences of 800.
+
+
+# you want to return the item_count for which the maximum order_occurrences are there if there are multiple
+# order by item_count in asc order
+# data = [
+# 	(1, 500),
+# 	(2, 1000),
+# 	(3, 800)
+# ]
+# 
+# # Define the column names
+# columns = ["item_count", "order_occurrences"]
+# 
+# # Create DataFrame
+# df = spark.createDataFrame(data, columns)
+# 
+# # Show the DataFrame
+# df.show(truncate=False)
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	SELECT item_count AS mode
+# FROM df
+# WHERE order_occurrences = (
+#   SELECT MAX(order_occurrences) 
+#   FROM df
+# )
+# ORDER BY item_count;
+# """).show()
+# max_order_occurrences = df.orderBy(col("order_occurrences").desc()).first()
+# max_value = max_order_occurrences["order_occurrences"]
+# print(max_value)
+# res = df.filter(df.order_occurrences==max_value).select(col("item_count").alias("mode"))
+# res.show()
