@@ -1730,13 +1730,13 @@ spark = SparkSession.builder.getOrCreate()
 # 	(2, 1000),
 # 	(3, 800)
 # ]
-# 
+#
 # # Define the column names
 # columns = ["item_count", "order_occurrences"]
-# 
+#
 # # Create DataFrame
 # df = spark.createDataFrame(data, columns)
-# 
+#
 # # Show the DataFrame
 # df.show(truncate=False)
 # df.createOrReplaceTempView("df")
@@ -1744,7 +1744,7 @@ spark = SparkSession.builder.getOrCreate()
 # 	SELECT item_count AS mode
 # FROM df
 # WHERE order_occurrences = (
-#   SELECT MAX(order_occurrences) 
+#   SELECT MAX(order_occurrences)
 #   FROM df
 # )
 # ORDER BY item_count;
@@ -1754,3 +1754,267 @@ spark = SparkSession.builder.getOrCreate()
 # print(max_value)
 # res = df.filter(df.order_occurrences==max_value).select(col("item_count").alias("mode"))
 # res.show()
+
+
+
+
+
+
+
+#note:  Your team at JPMorgan Chase is soon launching a new credit card. You are asked to estimate how many
+# cards you'll issue in the first month.
+# Before you can answer this question, you want to first get some perspective on how well new credit
+# card launches typically do in their first month.
+# Write a query that outputs the name of the credit card, and how many cards were issued in its launch
+# month. The launch month is the earliest record in the monthly_cards_issued table for a given card.
+# Order the results starting from the biggest issued amount.
+
+
+# data = [
+# 	(1, 2021, "Chase Sapphire Reserve", 170000),
+# 	(2, 2021, "Chase Sapphire Reserve", 175000),
+# 	(3, 2021, "Chase Sapphire Reserve", 180000),
+# 	(3, 2021, "Chase Freedom Flex", 65000),
+# 	(4, 2021, "Chase Freedom Flex", 70000)
+# ]
+#
+# # Define the column names
+# columns = ["issue_month", "issue_year", "card_name", "issued_amount"]
+#
+# # Create DataFrame
+# df = spark.createDataFrame(data, columns)
+#
+# # Show the DataFrame
+# df.show(truncate=False)
+# df.createOrReplaceTempView("df")
+# spark.sql("""
+# 	with ranked as (
+# 		select
+# 			card_name,
+# 			row_number()over(partition by card_name order by issue_year, issue_month) as row_number,
+# 			issued_amount
+# 		from df
+# 	)
+# 	select
+# 		card_name,
+# 		issued_amount
+# 	from
+# 		ranked
+# 	where
+# 		row_number=1
+# 	order by
+# 		issued_amount desc
+# """).show()
+#
+#
+# window_spec = Window.partitionBy("card_name").orderBy("issue_year", "issue_month")
+# res = (df
+# 	   .withColumn("rank", row_number().over(window_spec))
+# 	   .filter("rank=1")
+# 	   .select("card_name","issued_amount")
+# 	   .orderBy(col("issued_amount").desc())
+# 	   )
+# res.show()
+
+
+
+
+
+# note: A phone call is considered an international call when the person calling is in a different
+#  country than the person receiving the call.
+# What percentage of phone calls are international? Round the result to 1 decimal.
+# Assumption:
+# The caller_id in phone_info table refers to both the caller and receiver.
+# phone_calls Table:
+
+# Data for phone_calls
+# phone_calls_data = [
+# 	(1, 2, "2022-07-04 10:13:49"),
+# 	(1, 5, "2022-08-21 23:54:56"),
+# 	(5, 1, "2022-05-13 17:24:06"),
+# 	(5, 6, "2022-03-18 12:11:49"),
+# 	(5, 6, "2022-03-18 12:11:56"),
+# 	(5, 6, "2022-03-18 12:11:59")
+# ]
+# phone_calls_columns = ["caller_id", "receiver_id", "call_time"]
+# phone_calls_df = spark.createDataFrame(phone_calls_data, phone_calls_columns)
+# phone_calls_df.show(truncate=False)
+#
+# phone_info_data = [
+# 	(1, "US", "Verizon", "+1-212-897-1964"),
+# 	(2, "US", "Verizon", "+1-703-346-9529"),
+# 	(3, "US", "Verizon", "+1-650-828-4774"),
+# 	(4, "US", "Verizon", "+1-415-224-6663"),
+# 	(5, "IN", "Vodafone", "+91 7503-907302"),
+# 	(6, "IN", "Vodafone", "+91 2287-664895")
+# ]
+# phone_info_columns = ["caller_id", "country_id", "network", "phone_number"]
+# phone_info_df = spark.createDataFrame(phone_info_data, phone_info_columns)
+# phone_info_df.show(truncate=False)
+#
+# phone_calls_df.createOrReplaceTempView("phone_calls")
+# phone_info_df.createOrReplaceTempView("phone_info")
+# res = spark.sql("""
+# 	WITH international_calls AS (
+# 		SELECT
+# 		  caller.caller_id,
+# 		  caller.country_id,
+# 		  receiver.caller_id,
+# 		  receiver.country_id
+# 		FROM
+# 			phone_calls AS calls
+# 		LEFT JOIN
+# 			phone_info AS caller
+# 		ON
+# 			calls.caller_id = caller.caller_id
+# 		LEFT JOIN
+# 			phone_info AS receiver
+# 		ON
+# 			calls.receiver_id = receiver.caller_id
+# 		WHERE
+# 			caller.country_id <> receiver.country_id
+# 	)
+#
+# 	SELECT
+# 	  ROUND(100.0 * COUNT(*)/ (SELECT COUNT(*) FROM phone_calls),1) AS international_call_pct
+# 	FROM international_calls;
+# """)
+# res.show()
+#
+# result_df = (
+# 	phone_calls_df
+# 	.join(
+# 			phone_info_df.alias("caller_info"),
+# 			phone_calls_df.caller_id == col("caller_info.caller_id"),
+# 			"inner"
+# 	)
+# 	.join(
+# 		phone_info_df.alias("receiver_info"),
+# 		phone_calls_df.receiver_id == col("receiver_info.caller_id"),
+# 		"inner"
+# 	)
+# 	.select(
+# 		phone_calls_df.caller_id,
+# 		phone_calls_df.receiver_id,
+# 		col("caller_info.country_id").alias("caller_country_id"),
+# 		col("receiver_info.country_id").alias("receiver_country_id")
+# 	)
+# )
+# result_df.show()
+#
+# counts_df = (result_df
+# 	.agg(
+# 		count("*").alias("total_calls"),
+# 		count(
+# 			when(col("caller_country_id") != col("receiver_country_id"), 1)
+# 		).alias("international_calls")
+# 	)
+# )
+#
+# percentage_df = counts_df.select(
+# 	(round(100.0 * col("international_calls") / col("total_calls"), 1))
+# 	.alias("international_call_pct")
+# )
+#
+# # Show the percentage DataFrame
+# percentage_df.show()
+
+
+
+# The Bloomberg terminal is the go-to resource for financial professionals, offering convenient
+# access to a wide array of financial datasets. As a Data Analyst at Bloomberg, you have access to
+# historical data on stock performance.
+# Currently, you're analyzing the highest and lowest open prices for each FAANG stock by month over the years.
+# For each FAANG stock, display the ticker symbol, the month and year ('Mon-YYYY') with the
+# corresponding highest and lowest open prices (refer to the Example Output format). Ensure that the
+# results are sorted by ticker symbol.
+
+schema = ["date","ticker","open","high","low", "close"]
+
+data = [
+		("01/31/2023 00:00:00", "AAPL", 142.28, 144.34, 142.70, 144.29),
+		("02/28/2023 00:00:00", "AAPL", 146.83, 149.08, 147.05, 147.41),
+		("03/31/2023 00:00:00", "AAPL", 161.91, 165.00, 162.44, 164.90),
+		("04/30/2023 00:00:00", "AAPL", 167.88, 169.85, 168.49, 169.68),
+		("05/31/2023 00:00:00", "AAPL", 176.76, 179.35, 177.33, 177.25)
+]
+# Create the DataFrame
+df = spark.createDataFrame(data, schema)
+df.createOrReplaceTempView("df")
+# Show the DataFrame
+
+
+df = df.withColumn("formatted_date", date_format(to_date("date", "MM/dd/yyyy HH:mm:ss"), "MMMM-yyyy"))
+df.show()
+
+window_spec_max = Window.partitionBy("ticker").orderBy(col("open").desc())
+window_spec_min = Window.partitionBy("ticker").orderBy("open")
+
+# the point here is that we create our wanted date format and then we select the rows with min and max as
+# separate df and join them as the solution
+df_with_max = df.withColumn("highest_open", max("open").over(Window.partitionBy("ticker"))) \
+	.filter(col("open") == col("highest_open")) \
+	.select("ticker", "formatted_date", "highest_open")
+
+df_with_min = df.withColumn("lowest_open", min("open").over(Window.partitionBy("ticker"))) \
+	.filter(col("open") == col("lowest_open")) \
+	.select("ticker", "formatted_date", "lowest_open")
+
+df_with_max.show()
+df_with_min.show()
+
+# Join the DataFrames to include the dates for max and min open
+final_df = df_with_max.join(df_with_min, "ticker", "inner")
+
+# Show the final result
+final_df.show(truncate=False)
+
+
+df.groupBy("ticker").agg(max("open").alias("highest_open"), min("open").alias("lowest_close")).show()
+
+spark.sql("""
+    WITH highest_prices AS (
+        SELECT 
+            ticker,
+            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS highest_mth,
+            MAX(open) AS highest_open,
+            ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open DESC) AS row_num
+        FROM 
+            df
+        GROUP BY 
+            ticker, 
+            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
+            open
+    ),
+    lowest_prices AS (
+        SELECT 
+            ticker,
+            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS lowest_mth,
+            MIN(open) AS lowest_open,
+            ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open) AS row_num
+        FROM 
+            df
+        GROUP BY 
+            ticker, 
+            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
+            open
+    )
+    SELECT
+        highest.ticker,
+        highest.highest_mth,
+        highest.highest_open,
+        lowest.lowest_mth,
+        lowest.lowest_open
+    FROM 
+        highest_prices AS highest
+    INNER JOIN 
+        lowest_prices AS lowest
+    ON 
+        highest.ticker = lowest.ticker
+        AND 
+        highest.row_num = 1 -- Highest open price
+        AND 
+        lowest.row_num = 1 -- Lowest open price
+    ORDER BY 
+        highest.ticker;
+""").show()
