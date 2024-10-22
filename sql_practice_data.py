@@ -2,13 +2,6 @@ import os
 import datetime
 from datetime import timedelta
 import urllib.request
-
-from PIL.ImageWin import Window
-from matplotlib.patheffects import withStroke
-from matplotlib.pyplot import fill_between
-from numpy.ma.core import inner
-from pydantic.v1.utils import truncate
-from pyparsing import withClass
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.pandas.utils import spark_column_equals
@@ -67,6 +60,10 @@ spark = SparkSession.builder.getOrCreate()
 # # grouping by the count of the tweets
 # res = df.groupby("tweet_count_per_user").agg(count("user_id").alias("tweet_bucket"))
 # res.show()
+
+
+
+
 
 
 # note 2:Given a table of candidates and their skills, you're tasked with finding the candidates best
@@ -499,6 +496,8 @@ spark = SparkSession.builder.getOrCreate()
 # x.show()
 
 
+
+
 # note: 11 This is the same question as problem #1 in the SQL Chapter of Ace the Data Science Interview!
 # Assume you have an events table on Facebook app analytics. Write a query to calculate the click-through rate (CTR)
 # for the app in 2022 and round the results to 2 decimal places.
@@ -716,7 +715,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note: 10  You('re trying to find the mean number of items per order on Alibaba, rounded to 1 decimal place using
+# note: 15  You('re trying to find the mean number of items per order on Alibaba, rounded to 1 decimal place using
 #  'tables which includes information on the count of items in each order (item_count table) and the '
 # 	'corresponding number of orders for each item count (order_occurrences table).)
 
@@ -749,7 +748,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note-11  CVS Health is trying to better understand its pharmacy sales, and how well different products are
+# note- 16  CVS Health is trying to better understand its pharmacy sales, and how well different products are
 #  selling. Each drug can only be produced by one manufacturer.
 #  Write a query to find the top 3 most profitable drugs sold, and how much profit they made. Assume that
 #  there are no ties in the profits. Display the result from the highest to the lowest total profit.
@@ -792,7 +791,10 @@ spark = SparkSession.builder.getOrCreate()
 # 	.show()
 
 
-#note 12 CVS Health is analyzing its pharmacy sales data, and how well different products are selling
+
+
+
+#note 17 CVS Health is analyzing its pharmacy sales data, and how well different products are selling
 # in the market. Each drug is exclusively manufactured by a single manufacturer.
 # Write a query to identify the manufacturers associated with the drugs that resulted in losses for CVS
 # Health and calculate the total amount of losses incurred.
@@ -835,7 +837,7 @@ spark = SparkSession.builder.getOrCreate()
 # )
 
 
-# note 13 CVS Health wants to gain a clearer understanding of its pharmacy sales and the performance
+# note 18 CVS Health wants to gain a clearer understanding of its pharmacy sales and the performance
 #  of various products.
 #  Write a query to calculate the total drug sales for each manufacturer. Round the answer to the nearest
 # 	million and report your results in descending order of total sales. In case of any duplicates,
@@ -883,7 +885,7 @@ spark = SparkSession.builder.getOrCreate()
 # result_df.show()
 
 
-# note 14 UnitedHealth Group (UHG) has a program called Advocate4Me, which allows policy holders
+# note 19 UnitedHealth Group (UHG) has a program called Advocate4Me, which allows policy holders
 #  (or, members) to call an advocate and receive support for their health care needs – whether that's
 #  claims and benefits support, drug coverage, pre- and post-authorisation, medical records, emergency
 #  assistance, or member portal services.
@@ -928,7 +930,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note 15 As a data analyst on the Oracle Sales Operations team, you are given a list of salespeople’s deals,
+# note 20 As a data analyst on the Oracle Sales Operations team, you are given a list of salespeople’s deals,
 #  and the annual quota they need to hit.
 #  Write a query that outputs each employee id and whether they hit the quota or not ('yes' or 'no').
 #  Order the results by employee id in ascending order.
@@ -985,7 +987,11 @@ spark = SparkSession.builder.getOrCreate()
 # 	).select("employee_id", "made_quota").show()
 #  )
 
-#note 16 Companies often perform salary analyses to ensure fair compensation practices. One useful
+
+
+
+
+#note 21 Companies often perform salary analyses to ensure fair compensation practices. One useful
 # analysis is to check if there are any employees earning more than their direct managers.
 # As a HR Analyst, you're asked to identify all employees who earn more than their direct managers.
 # The result should include the employee's ID and name.
@@ -1032,7 +1038,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-#note 17
+#note 22
 # Assume you are given the table below on Uber transactions made by users. Write a query to obtain the
 # third transaction of every user. Output the user id, spend and transaction date.
 
@@ -1076,7 +1082,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note 18   Imagine you're an HR analyst at a tech company tasked with analyzing employee salaries.
+# note 23   Imagine you're an HR analyst at a tech company tasked with analyzing employee salaries.
 #  Your manager is keen on understanding the pay distribution and asks you to determine the second highest
 #  salary among all employees.
 #  It's possible that multiple employees may share the same second highest salary. In case of duplicate,
@@ -1112,7 +1118,7 @@ spark = SparkSession.builder.getOrCreate()
 # """).show()
 
 
-#note 19
+#note 24
 # Assume you're given tables with information on Snapchat users, including their ages and time spent
 # sending and opening snaps.
 # Write a query to obtain a breakdown of the time spent sending vs. opening snaps as a percentage of
@@ -1190,7 +1196,7 @@ spark = SparkSession.builder.getOrCreate()
 # """).show()
 
 
-# note 20 Given a table of tweet data over a specified time period, calculate the 3-day rolling average
+# note 25 Given a table of tweet data over a specified time period, calculate the 3-day rolling average
 #  of tweets for each user. Output the user ID, tweet date, and rolling averages rounded to 2 decimal places.
 #  Notes: A rolling average, also known as a moving average or running mean is a time-series technique that
 #  examines trends in data over a specified period of time.
@@ -1223,7 +1229,12 @@ spark = SparkSession.builder.getOrCreate()
 # window_spec = Window.partitionBy("user_id").orderBy("tweet_date").rowsBetween(-2,0)
 # df.withColumn("rolling_avg_3_days", avg("tweet_count").over(window_spec)).show()
 
-# note 21
+
+
+
+
+
+# note 26
 #  Assume you're given a table containing data on Amazon customers and their spending on products in
 #  different category, write a query to identify the top two highest-grossing products within each
 #  category in the year 2022. The output should include the category, product, and total spend.
@@ -1281,7 +1292,11 @@ spark = SparkSession.builder.getOrCreate()
 # 	)
 # m2.show()
 
-# note 22  As part of an ongoing analysis of salary distribution within the company, your manager has
+
+
+
+
+# note 27  As part of an ongoing analysis of salary distribution within the company, your manager has
 #  requested a report identifying high earners in each department. A 'high earner' within a department
 #  is defined as an employee with a salary ranking among the top three salaries within that department.
 #  You're tasked with identifying these high earners across all departments. Write a query to display the
@@ -1359,7 +1374,12 @@ spark = SparkSession.builder.getOrCreate()
 # """).show()
 
 
-# note 23  Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain
+
+
+
+
+
+# note 28  Assume there are three Spotify tables: artists, songs, and global_song_rank, which contain
 #  information about the artists, songs, and music charts, respectively.
 #  Write a query to find the top 5 artists whose songs appear most frequently in the Top 10 of the
 #  global_song_rank table. Display the top 5 artist names in ascending order, along with their song
@@ -1449,7 +1469,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-#note 24 New TikTok users sign up with their emails. They confirmed their signup by replying to the text
+#note 29 New TikTok users sign up with their emails. They confirmed their signup by replying to the text
 # confirmation to activate their accounts. Users may receive multiple text messages for account confirmation
 # until they have confirmed their new account.
 # A senior analyst is interested to know the activation rate of specified users in the emails table.
@@ -1515,7 +1535,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note 25 A Microsoft Azure Supercloud customer is defined as a customer who has purchased at
+# note 30 A Microsoft Azure Supercloud customer is defined as a customer who has purchased at
 #  least one product from every product category listed in the products table.
 # Write a query that identifies the customer IDs of these Supercloud customers.
 
@@ -1594,7 +1614,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# NOTE: This is the same question as problem #28 in the SQL Chapter of Ace the Data Science Interview!
+# NOTE: 31 This is the same question as problem #28 in the SQL Chapter of Ace the Data Science Interview!
 # Assume you're given a table with measurement values obtained from a Google sensor over multiple days
 # with measurements taken multiple times within each day.
 # Write a query to calculate the sum of odd-numbered and even-numbered measurements separately for a
@@ -1653,7 +1673,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note Assume you're given a table on Walmart user transactions. Based on their most recent transaction date,
+# note 32 Assume you're given a table on Walmart user transactions. Based on their most recent transaction date,
 #  write a query that retrieve the users along with the number of products they bought.
 # Output the user's most recent transaction date, user ID, and the number of products, sorted in
 # chronological order by the transaction date.
@@ -1712,7 +1732,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-#note   You're given a table containing the item count for each order on Alibaba, along with the
+#note 33.   You're given a table containing the item count for each order on Alibaba, along with the
 # frequency of orders that have the same item count. Write a query to retrieve the mode of the order
 # occurrences. Additionally, if there are multiple item counts with the same mode, the results
 # should be sorted in ascending order.
@@ -1761,7 +1781,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-#note:  Your team at JPMorgan Chase is soon launching a new credit card. You are asked to estimate how many
+#note: 34.  Your team at JPMorgan Chase is soon launching a new credit card. You are asked to estimate how many
 # cards you'll issue in the first month.
 # Before you can answer this question, you want to first get some perspective on how well new credit
 # card launches typically do in their first month.
@@ -1820,7 +1840,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# note: A phone call is considered an international call when the person calling is in a different
+# note:35. A phone call is considered an international call when the person calling is in a different
 #  country than the person receiving the call.
 # What percentage of phone calls are international? Round the result to 1 decimal.
 # Assumption:
@@ -1921,7 +1941,7 @@ spark = SparkSession.builder.getOrCreate()
 
 
 
-# The Bloomberg terminal is the go-to resource for financial professionals, offering convenient
+#note: 36. The Bloomberg terminal is the go-to resource for financial professionals, offering convenient
 # access to a wide array of financial datasets. As a Data Analyst at Bloomberg, you have access to
 # historical data on stock performance.
 # Currently, you're analyzing the highest and lowest open prices for each FAANG stock by month over the years.
@@ -1929,92 +1949,100 @@ spark = SparkSession.builder.getOrCreate()
 # corresponding highest and lowest open prices (refer to the Example Output format). Ensure that the
 # results are sorted by ticker symbol.
 
-schema = ["date","ticker","open","high","low", "close"]
+# schema = ["date","ticker","open","high","low", "close"]
+#
+# data = [
+# 		("01/31/2023 00:00:00", "AAPL", 142.28, 144.34, 142.70, 144.29),
+# 		("02/28/2023 00:00:00", "AAPL", 146.83, 149.08, 147.05, 147.41),
+# 		("03/31/2023 00:00:00", "AAPL", 161.91, 165.00, 162.44, 164.90),
+# 		("04/30/2023 00:00:00", "AAPL", 167.88, 169.85, 168.49, 169.68),
+# 		("05/31/2023 00:00:00", "AAPL", 176.76, 179.35, 177.33, 177.25)
+# ]
+# # Create the DataFrame
+# df = spark.createDataFrame(data, schema)
+# df.createOrReplaceTempView("df")
+# # Show the DataFrame
+#
+#
+# df = df.withColumn("formatted_date", date_format(to_date("date", "MM/dd/yyyy HH:mm:ss"), "MMMM-yyyy"))
+# df.show()
+#
+# window_spec_max = Window.partitionBy("ticker").orderBy(col("open").desc())
+# window_spec_min = Window.partitionBy("ticker").orderBy("open")
+#
+# # the point here is that we create our wanted date format and then we select the rows with min and max as
+# # separate df and join them as the solution
+# df_with_max = df.withColumn("highest_open", max("open").over(Window.partitionBy("ticker"))) \
+# 	.filter(col("open") == col("highest_open")) \
+# 	.select("ticker", "formatted_date", "highest_open")
+#
+# df_with_min = df.withColumn("lowest_open", min("open").over(Window.partitionBy("ticker"))) \
+# 	.filter(col("open") == col("lowest_open")) \
+# 	.select("ticker", "formatted_date", "lowest_open")
+#
+# df_with_max.show()
+# df_with_min.show()
+#
+# # Join the DataFrames to include the dates for max and min open
+# final_df = df_with_max.join(df_with_min, "ticker", "inner")
+#
+# # Show the final result
+# final_df.show(truncate=False)
+#
+#
+# df.groupBy("ticker").agg(max("open").alias("highest_open"), min("open").alias("lowest_close")).show()
+#
+# spark.sql("""
+#     WITH highest_prices AS (
+#         SELECT
+#             ticker,
+#             date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS highest_mth,
+#             MAX(open) AS highest_open,
+#             ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open DESC) AS row_num
+#         FROM
+#             df
+#         GROUP BY
+#             ticker,
+#             date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
+#             open
+#     ),
+#     lowest_prices AS (
+#         SELECT
+#             ticker,
+#             date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS lowest_mth,
+#             MIN(open) AS lowest_open,
+#             ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open) AS row_num
+#         FROM
+#             df
+#         GROUP BY
+#             ticker,
+#             date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
+#             open
+#     )
+#     SELECT
+#         highest.ticker,
+#         highest.highest_mth,
+#         highest.highest_open,
+#         lowest.lowest_mth,
+#         lowest.lowest_open
+#     FROM
+#         highest_prices AS highest
+#     INNER JOIN
+#         lowest_prices AS lowest
+#     ON
+#         highest.ticker = lowest.ticker
+#         AND
+#         highest.row_num = 1 -- Highest open price
+#         AND
+#         lowest.row_num = 1 -- Lowest open price
+#     ORDER BY
+#         highest.ticker;
+# """).show()
 
-data = [
-		("01/31/2023 00:00:00", "AAPL", 142.28, 144.34, 142.70, 144.29),
-		("02/28/2023 00:00:00", "AAPL", 146.83, 149.08, 147.05, 147.41),
-		("03/31/2023 00:00:00", "AAPL", 161.91, 165.00, 162.44, 164.90),
-		("04/30/2023 00:00:00", "AAPL", 167.88, 169.85, 168.49, 169.68),
-		("05/31/2023 00:00:00", "AAPL", 176.76, 179.35, 177.33, 177.25)
-]
-# Create the DataFrame
-df = spark.createDataFrame(data, schema)
-df.createOrReplaceTempView("df")
-# Show the DataFrame
 
 
-df = df.withColumn("formatted_date", date_format(to_date("date", "MM/dd/yyyy HH:mm:ss"), "MMMM-yyyy"))
-df.show()
-
-window_spec_max = Window.partitionBy("ticker").orderBy(col("open").desc())
-window_spec_min = Window.partitionBy("ticker").orderBy("open")
-
-# the point here is that we create our wanted date format and then we select the rows with min and max as
-# separate df and join them as the solution
-df_with_max = df.withColumn("highest_open", max("open").over(Window.partitionBy("ticker"))) \
-	.filter(col("open") == col("highest_open")) \
-	.select("ticker", "formatted_date", "highest_open")
-
-df_with_min = df.withColumn("lowest_open", min("open").over(Window.partitionBy("ticker"))) \
-	.filter(col("open") == col("lowest_open")) \
-	.select("ticker", "formatted_date", "lowest_open")
-
-df_with_max.show()
-df_with_min.show()
-
-# Join the DataFrames to include the dates for max and min open
-final_df = df_with_max.join(df_with_min, "ticker", "inner")
-
-# Show the final result
-final_df.show(truncate=False)
 
 
-df.groupBy("ticker").agg(max("open").alias("highest_open"), min("open").alias("lowest_close")).show()
 
-spark.sql("""
-    WITH highest_prices AS (
-        SELECT 
-            ticker,
-            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS highest_mth,
-            MAX(open) AS highest_open,
-            ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open DESC) AS row_num
-        FROM 
-            df
-        GROUP BY 
-            ticker, 
-            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
-            open
-    ),
-    lowest_prices AS (
-        SELECT 
-            ticker,
-            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy') AS lowest_mth,
-            MIN(open) AS lowest_open,
-            ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY open) AS row_num
-        FROM 
-            df
-        GROUP BY 
-            ticker, 
-            date_format(to_date(date, 'MM/dd/yyyy HH:mm:ss'), 'MMM-yyyy'),
-            open
-    )
-    SELECT
-        highest.ticker,
-        highest.highest_mth,
-        highest.highest_open,
-        lowest.lowest_mth,
-        lowest.lowest_open
-    FROM 
-        highest_prices AS highest
-    INNER JOIN 
-        lowest_prices AS lowest
-    ON 
-        highest.ticker = lowest.ticker
-        AND 
-        highest.row_num = 1 -- Highest open price
-        AND 
-        lowest.row_num = 1 -- Lowest open price
-    ORDER BY 
-        highest.ticker;
-""").show()
+
+
