@@ -794,7 +794,7 @@ o/p df required
 
 
 # Create DataFrame
-sales_df = spark.read.format("csv").options(header=True).load("output_file.csv")
+sales_df = spark.read.format("csv").options(header=True).load("data/output_file.csv")
 sales_df.show()
 print(sales_df.dtypes)
 sales_df = sales_df.withColumn("price", round(sales_df["price"], 2))
@@ -919,7 +919,7 @@ root
 |    |    |-- name: string (nullable = true)
 |-- salary: double (nullable = true)
 """
-df = spark.read.option("multiline", "true").json("gpt2.json")
+df = spark.read.option("multiline", "true").json("data/gpt2.json")
 df.show()
 df.printSchema()
 trr=(df
@@ -1130,7 +1130,7 @@ spark.sql("""
 #========================================================================================================================
 #note: GPT-2 data
 #note scenario 14
-df = spark.read.option("multiline","true").json("gpt_data.json")
+df = spark.read.option("multiline","true").json("data/gpt_data.json")
 # df.show()
 # df.printSchema()
 df = df.withColumn("products", expr("explode(products)"))
@@ -1571,7 +1571,7 @@ spark.sql("""
 
 # note: gpt-3 Data
 # note: 21
-df = spark.read.option("multiline","true").json("Ecommerce_data.json")
+df = spark.read.option("multiline","true").json("data/Ecommerce_data.json")
 # df.printSchema()
 df = df.withColumn("items", expr("explode(order.items)"))
 df.printSchema()
@@ -1862,3 +1862,4 @@ cities_df = (raw_df
 	)
 cities_df.show()
 
+print("hello world")
