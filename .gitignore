@@ -4,3 +4,5 @@
 ./spark-avro_2.12-3.5.1.jar
 ./spark-xml_2.12-0.18.0.jar
 ./sparky.iml
+./.venv
+./logs
