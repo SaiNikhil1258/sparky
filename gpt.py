@@ -17,10 +17,10 @@ import builtins
 import random
 import urllib.request
 
-python_path = sys.executable
-os.environ['PYSPARK_PYTHON'] = python_path
-os.environ['JAVA_HOME'] = r'C:\Users\LENOVO\.jdks\corretto-1.8.0_422'
-os.environ["HADOOP_HOME"] = "C:\Program Files\Hadoop"
+# python_path = sys.executable
+# os.environ['PYSPARK_PYTHON'] = python_path
+# os.environ['JAVA_HOME'] = r'C:\Users\LENOVO\.jdks\corretto-1.8.0_422'
+# os.environ["HADOOP_HOME"] = "C:\Program Files\Hadoop"
 
 conf = (SparkConf()
 			.setAppName("pyspark")
