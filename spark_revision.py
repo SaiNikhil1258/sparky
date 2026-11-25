@@ -80,12 +80,25 @@ print("\033[93mOriginal list\033[0m\n", arr)
 # Convert Python list into an RDD.
 list_rdd = sc.parallelize(arr)
 
+list1_rdd_with_partitions_or_slices = sc.parallelize(arr,2)
+print(list1_rdd_with_partitions_or_slices.getNumPartitions())
+print("\033[93mOriginal RDD\033[0m\n", list_rdd.collect())
+print("\033[93mRDD with partitions\033[0m\n", list1_rdd_with_partitions_or_slices.collect())
+print("\033[93mRDD with partitions (glom)\033[0m\n", list1_rdd_with_partitions_or_slices.glom().collect())
+
+# NOTE: 
+# getNumPartitions() tells you how many partitions exist in the rdd
+# glom() groups the elements of each partition into a list, allowing you to see the distribution of data across partitions.
+# collect() retrieves all elements of the RDD to the driver, which can be risky for large datasets.
+
 # Add 2 to every element using map().
 addition_rdd = list_rdd.map(lambda x: x + 2)
+multiplication_rdd = list_rdd.map(lambda x:x * 2)
 
 # collect() triggers execution and returns the result to the driver.
 print("\033[93mRDD after addition of 2\033[0m\n", addition_rdd.collect())
-
+print("\033[93mRDD after multiplication by 2\033[0m\n", multiplication_rdd.collect())
+print("\n====================================================================================\n")
 
 """
 ===========================================================
@@ -108,13 +121,16 @@ str_arr = ["Nikhil", "Nik", "Nike", "Pyspark"]
 
 print("\033[93mThe string list is\033[0m\n", str_arr)
 
-str_rdd = sc.parallelize(str_arr)
+str_rdd = sc.parallelize(str_arr, 2)
+str_rdd_with_partitions_or_slices = sc.parallelize(str_arr, 2)
+print("\033[93mRDD with partitions\033[0m\n", str_rdd_with_partitions_or_slices.glom().collect())
 
 # Retain only strings containing "Nik".
 filtered_rdd = str_rdd.filter(lambda x: "Nik" in x)
 
 print("\033[93mRDD after filtering\033[0m\n", filtered_rdd.collect())
 
+print("\n====================================================================================\n")
 
 """
 ===========================================================
@@ -150,9 +166,9 @@ gymData_file1_rdd = file1.filter(lambda x: "Gymnastics" in x)
 
 print("\033[93mFirst five matching records\033[0m")
 
-print(*gymData_file1_rdd.take(5), sep="\n")
+print(gymData_file1_rdd.take(5), sep="\n")
 
-
+print("\n====================================================================================\n")
 """
 ===========================================================
         4. CREATE A STRUCTURED RDD USING NAMED TUPLE
@@ -207,17 +223,18 @@ product_rdd_raw = sc.textFile("./data/file1.txt")
 
 # Split every CSV record using comma as the delimiter.
 split_rdd = product_rdd_raw.map(lambda x: x.split(","))
-
+print("split_rdd.collect():", split_rdd.collect())
 # Convert each split record into a named tuple.
 schema_rdd = split_rdd.map(
     lambda x: named_tuple(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8])
 )
+print("schema_rdd.collect():", schema_rdd.collect())
 
 # Filter records where the PRODUCT column contains Gymnastics.
 gymdata_product_rdd = schema_rdd.filter(lambda x: "Gymnastics" in x.product)
 
 # Print the first five matching named tuples.
-print(*gymdata_product_rdd.take(5), sep="\n")
+print("gymdata_product_rdd.take(5):\n", gymdata_product_rdd.take(5))
 
 
 """
@@ -247,7 +264,7 @@ print("\n\033[93mConverting RDD into DataFrame\033[0m")
 
 schemadf = gymdata_product_rdd.toDF()
 
-schemadf.show(5)
+schemadf.show(5,truncate=False)
 
 
 """
@@ -273,7 +290,7 @@ print("\n\033[93mReading CSV file with header=True\033[0m")
 
 file3df = spark.read.format("csv").options(header=True).load("./data/file3.txt")
 
-file3df.show(5)
+file3df.show(5,truncate=False)
 
 
 """
@@ -302,14 +319,14 @@ print("\n\033[93mReading JSON and Parquet files\033[0m")
 # Read JSON file.
 json_df = spark.read.format("json").load("./data/file4.json")
 
-json_df.show(5)
+json_df.show(5,truncate=False)
 
 
 # Read Parquet file.
 # Parquet is the default format for spark.read.load().
 parquet_df = spark.read.load("./data/file5.parquet")
 
-parquet_df.show(5)
+parquet_df.show(5,truncate=False)
 
 
 """
@@ -357,7 +374,7 @@ print("\n\033[93mSchema alignment and DataFrame union\033[0m")
 
 # Get the column order from the first DataFrame.
 column_headers = schemadf.columns
-
+print("Column order from schemadf:", column_headers)
 # Reorder the JSON DataFrame columns.
 json_df_final = json_df.select(column_headers)
 
@@ -366,8 +383,15 @@ parquet_df_final = parquet_df.select(column_headers)
 
 # Combine all three DataFrames vertically.
 uniondf = schemadf.union(json_df_final).union(parquet_df_final)
+#  NOTE: union() combines rows based on column POSITION, not column NAME. and 
+# also it requires that both DataFrames have the same number of columns and compatible data types for each corresponding column.
+# when you have different number of columns in the DataFrames, you can use unionByName() 
+# instead of union() to align columns by name and fill missing columns with null values.
+# incase of dataframes with different number of columns, you can use unionByName() 
+# instead of union() to align columns by name and fill missing columns with null values.
+# with allowMissingColumns=True, unionByName() will fill missing columns with null values instead of throwing an error.
 
-uniondf.show(5)
+uniondf.show(truncate=False,n=5)
 
 
 """
@@ -501,8 +525,8 @@ Important:
 print("\n\033[93mCasting total column to IntegerType\033[0m")
 
 casting_df = goupby_df.withColumn("total", col("total").cast("int"))
-
-casting_df.show(5)
+casting_df.printSchema()
+casting_df.show(truncate=False, n=5)
 
 
 """
